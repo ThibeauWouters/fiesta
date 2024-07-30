@@ -1,0 +1,17 @@
+Metadata-Version: 2.1
+Name: fiesta
+Version: 0.0.1
+Summary: Fast inference of electromagnetic signals with JAX
+Home-page: https://github.com/thibeauwouters/fiesta
+Author: Thibeau Wouters
+Author-email: thibeauwouters@gmail.com
+License: MIT
+Keywords: sampling,inference,astrophysics,kilonovae,gamma-ray bursts
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: jax>=0.4.24
+Requires-Dist: jaxlib>=0.4.24
+
+# fiesta
+fiesta: Fast inference of electromagnetic signals with JAX
