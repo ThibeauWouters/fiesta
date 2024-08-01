@@ -8,6 +8,10 @@ from fiesta.inference.lightcurve_model import BullaLightcurveModel
 from fiesta.train import utils
 from fiesta.train.neuralnets import NeuralnetConfig
 
+print("Checking whether we found a GPU:")
+import jax
+print(jax.devices())
+
 params = {"axes.grid": True,
         "text.usetex" : True,
         "font.family" : "serif",
