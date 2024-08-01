@@ -73,7 +73,7 @@ for filename in full_lc_files[:4]:
 # Define the config if you want to change a default parameter
 config = NeuralnetConfig()
 print(f"Original number of training epochs: {config.nb_epochs}")
-config.nb_epochs = 2_000
+config.nb_epochs = 10_000
 print(f"New number of training epochs: {config.nb_epochs}")
 bulla_trainer.fit(config=config, verbose=True)
 bulla_trainer.save()
