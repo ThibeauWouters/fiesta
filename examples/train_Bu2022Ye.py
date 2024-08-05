@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from fiesta.train.SurrogateTrainer import BullaSurrogateTrainer
 from fiesta.inference.lightcurve_model import BullaLightcurveModel
 
-from fiesta.train import utils
+import fiesta.utils as utils
 from fiesta.train.neuralnets import NeuralnetConfig
 
 print("Checking whether we found a GPU:")
