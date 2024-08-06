@@ -15,6 +15,9 @@ from fiesta.inference.injection import InjectionRecovery
 from fiesta.inference.fiesta import Fiesta
 from fiesta.utils import load_event_data
 
+import time
+start_time = time.time()
+
 ################
 ### Preamble ###
 ################
@@ -102,11 +105,13 @@ prior_list = [inclination_EM,
 
 prior = Composite(prior_list)
 
+detection_limit = None
 likelihood = EMLikelihood(model,
                           filters,
                           injection.data,
                           fixed_params={"luminosity_distance": 44.0},
-                          trigger_time=trigger_time)
+                          trigger_time=trigger_time,
+                          detection_limit = detection_limit)
 
 ##############
 ### FIESTA ###
@@ -159,8 +164,6 @@ global_accs = jnp.mean(global_accs, axis=0)
 np.savez(name, chains=chains, log_prob=log_prob,
             local_accs=local_accs, global_accs=global_accs)
     
-print("DONE")
-
 ################
 ### PLOTTING ###
 ################
@@ -193,3 +196,11 @@ samples = np.asarray(samples) # convert from jax.numpy array to numpy array for 
 fig = corner.corner(samples, labels = parameter_names, truths = truths, hist_kwargs={'density': True}, **default_corner_kwargs)
 fig.savefig("./figures/test_injection_corner.png", bbox_inches = 'tight')
 plt.close()
+
+print("DONE")
+
+end_time = time.time()
+runtime_seconds = end_time - start_time
+number_of_minutes = runtime_seconds // 60
+number_of_seconds = np.round(runtime_seconds % 60, 2)
+print(f"Total runtime: {number_of_minutes} m {number_of_seconds} s")
