@@ -81,7 +81,8 @@ injection_dict = {"KNtheta": jnp.pi / 4,
 
 injection = InjectionRecovery(model, 
                               filters,
-                              injection_dict)
+                              injection_dict,
+                              randomize_nondetections=True)
 
 injection.create_injection()
 
@@ -169,20 +170,30 @@ np.savez(name, chains=chains, log_prob=log_prob,
 ################
 
 fig, ax = plt.subplots(nrows = len(filters), ncols = 1, figsize = (10, 20))
+
 for i, filter_name in enumerate(filters):
     ax = plt.subplot(len(filters), 1, i + 1)
     
     # Load the data
     t, mag, err = injection.data[filter_name].T
-    ax.plot(t, mag, color = "blue", label = "Model")
+    idx_det = np.where(err != np.inf)[0]
+    idx_nondet = np.where(err == np.inf)[0]
+    
+    # ### Plot the data NOTE: broken if we have non-detections
+    # ax.plot(t, mag, color = "blue", label = "Model")
+    
+    # Detections
+    ax.errorbar(t[idx_det] - trigger_time, mag[idx_det], yerr = err[idx_det], fmt = "o", color = "red", label = "Data (det.)")
+    
+    # Non-detections
+    ax.scatter(t[idx_nondet] - trigger_time, mag[idx_nondet], marker = "v", color = "red", label = "Data (nondet.)")
+    
+    # Make pretty
     ax.set_xlabel("Time [days]")
     ax.set_ylabel(filter_name)
-    ax.errorbar(t - trigger_time, mag, yerr = err, fmt = "o", color = "red", label = "Data")
-    
     ax.invert_yaxis()
     
-plt.savefig("./figures/test_injection_data.png")
-plt.close()
+plt.show()
 
 # Fixed names: do not include them in the plotting, as will break corner
 fixed_parameter_names = ["luminosity_distance"]
