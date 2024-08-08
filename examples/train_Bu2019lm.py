@@ -29,14 +29,12 @@ params = {"axes.grid": True,
 
 plt.rcParams.update(params)
 
-# TODO: fix the filters for AT2017gfo
-# FILTERS = ["ps1__g", "ps1__r", "ps1__i", "ps1__z", "ps1__y", "2massj", "2massh", "2massks", "sdssu"]
-
 # All filters that are in the files for this model:
-FILTERS = ['sdss__u', 'sdss__g', 'sdss__r', 'sdss__i', 'sdss__z', 'swope2__y', 'swope2__J', 'swope2__H', 'cspk', 'bessellux', 'bessellb', 'bessellv', 'bessellr', 'besselli', 'uvot__b', 'uvot__u', 'uvot__uvm2', 'uvot__uvw1', 'uvot__uvw2', 'uvot__v', 'uvot__white']
+# FILTERS = ['sdss__u', 'sdss__g', 'sdss__r', 'sdss__i', 'sdss__z', 'swope2__y', 'swope2__J', 'swope2__H', 'cspk', 'bessellux', 'bessellb', 'bessellv', 'bessellr', 'besselli', 'uvot__b', 'uvot__u', 'uvot__uvm2', 'uvot__uvw1', 'uvot__uvw2', 'uvot__v', 'uvot__white']
+FILTERS = ["ps1__g", "ps1__r", "ps1__i", "ps1__z", "ps1__y", "2massj", "2massh", "2massks", "sdssu"]
 
 # TODO: need to find a way to locate the files
-lc_dir = "/home/urash/twouters/KN_lightcurves/lightcurves/bulla_2019/"
+lc_dir = "/home/urash/twouters/projects/fiesta_dev/fiesta_test/lightcurves/Bu2019lm/lcs/"
 name = "Bu2019lm"
 
 outdir = f"../trained_models/{name}/"
