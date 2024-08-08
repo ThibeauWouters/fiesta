@@ -60,9 +60,9 @@ bulla_trainer = BullaSurrogateTrainer(name,
                                       outdir, 
                                       filters = FILTERS,
                                       plots_dir = plots_dir,
-                                      tmin = 0.1,
-                                      tmax = 14.0,
-                                      dt = 0.1,
+                                    #   tmin = 0.1,
+                                    #   tmax = 14.0,
+                                    #   dt = 0.1,
                                       save_raw_data = True)
 
 print("Filters to train on:")
