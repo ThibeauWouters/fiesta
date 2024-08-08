@@ -30,7 +30,6 @@ params = {"axes.grid": True,
 plt.rcParams.update(params)
 
 # All filters that are in the files for this model:
-# FILTERS = ['sdss__u', 'sdss__g', 'sdss__r', 'sdss__i', 'sdss__z', 'swope2__y', 'swope2__J', 'swope2__H', 'cspk', 'bessellux', 'bessellb', 'bessellv', 'bessellr', 'besselli', 'uvot__b', 'uvot__u', 'uvot__uvm2', 'uvot__uvw1', 'uvot__uvw2', 'uvot__v', 'uvot__white']
 FILTERS = ["ps1__g", "ps1__r", "ps1__i", "ps1__z", "ps1__y", "2massj", "2massh", "2massks", "sdssu"]
 
 # TODO: need to find a way to locate the files
@@ -61,6 +60,9 @@ bulla_trainer = BullaSurrogateTrainer(name,
                                       outdir, 
                                       filters = FILTERS,
                                       plots_dir = plots_dir,
+                                      tmin = 0.1,
+                                      tmax = 14.0,
+                                      dt = 0.1,
                                       save_raw_data = True)
 
 print("Filters to train on:")
