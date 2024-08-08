@@ -46,29 +46,27 @@ default_corner_kwargs = dict(bins=40,
                         label_kwargs=dict(fontsize=16),
                         title_kwargs=dict(fontsize=16), 
                         color="blue",
-                        # quantiles=[],
-                        # levels=[0.9],
                         plot_density=True, 
                         plot_datapoints=False, 
                         fill_contours=True,
                         max_n_ticks=4, 
-                        min_n_ticks=3,
-                        save=False,
-                        truth_color="red")
+                        min_n_ticks=3)
 
 #############
 ### SETUP ###
 #############
 
-filters = ["ps1__g", "ps1__r", "ps1__i", "ps1__z", "ps1__y", "2massj", "2massh", "2massks", "sdssu"]
+# filters = ["ps1__g", "ps1__r", "ps1__i", "ps1__z", "ps1__y", "2massj", "2massh", "2massks", "sdssu"]
+filters = None # to just use all filters
+name = "Bu2022Ye"
 trigger_time = 0.0 
 
 ###########################
 ### MODEL AND INJECTION ###
 ###########################
 
-model = BullaLightcurveModel("Bu2022Ye",
-                             "../trained_models/Bu2022Ye/",
+model = BullaLightcurveModel(name,
+                             f"../trained_models/{name}/",
                              filters)
 
 injection_dict = {"KNtheta": jnp.pi / 4,
@@ -80,8 +78,8 @@ injection_dict = {"KNtheta": jnp.pi / 4,
                   "luminosity_distance": 44.0,}
 
 injection = InjectionRecovery(model, 
-                              filters,
                               injection_dict,
+                              filters,
                               randomize_nondetections=True)
 
 injection.create_injection()
@@ -108,8 +106,8 @@ prior = Composite(prior_list)
 
 detection_limit = None
 likelihood = EMLikelihood(model,
-                          filters,
                           injection.data,
+                          filters,
                           fixed_params={"luminosity_distance": 44.0},
                           trigger_time=trigger_time,
                           detection_limit = detection_limit)
@@ -144,31 +142,32 @@ print("Saving injection dict")
 save_name = os.path.join(outdir, "injection_dict.npz")
 np.savez(save_name, **injection_dict)
 
-name = outdir + f'results_training.npz'
-print(f"Saving samples to {name}")
+save_name = outdir + f'results_training.npz'
+print(f"Saving samples to {save_name}")
 state = fiesta.Sampler.get_sampler_state(training=True)
 chains, log_prob, local_accs, global_accs, loss_vals = state["chains"], state[
 "log_prob"], state["local_accs"], state["global_accs"], state["loss_vals"]
 local_accs = jnp.mean(local_accs, axis=0)
 global_accs = jnp.mean(global_accs, axis=0)
-np.savez(name, log_prob=log_prob, local_accs=local_accs,
+np.savez(save_name, log_prob=log_prob, local_accs=local_accs,
         global_accs=global_accs, loss_vals=loss_vals)
 
 #  - production phase
-name = outdir + f'results_production.npz'
-print(f"Saving samples to {name}")
+save_name = outdir + f'results_production.npz'
+print(f"Saving samples to {save_name}")
 state = fiesta.Sampler.get_sampler_state(training=False)
 chains, log_prob, local_accs, global_accs = state["chains"], state[
     "log_prob"], state["local_accs"], state["global_accs"]
 local_accs = jnp.mean(local_accs, axis=0)
 global_accs = jnp.mean(global_accs, axis=0)
-np.savez(name, chains=chains, log_prob=log_prob,
+np.savez(save_name, chains=chains, log_prob=log_prob,
             local_accs=local_accs, global_accs=global_accs)
     
 ################
 ### PLOTTING ###
 ################
 
+filters = likelihood.filters
 fig, ax = plt.subplots(nrows = len(filters), ncols = 1, figsize = (10, 20))
 
 for i, filter_name in enumerate(filters):
@@ -193,19 +192,20 @@ for i, filter_name in enumerate(filters):
     ax.set_ylabel(filter_name)
     ax.invert_yaxis()
     
-plt.show()
+plt.savefig(f"./figures/test_injection_{name}_data.png", bbox_inches = 'tight')
+plt.close()
 
 # Fixed names: do not include them in the plotting, as will break corner
 fixed_parameter_names = ["luminosity_distance"]
-parameter_names = fiesta.likelihood.model.parameter_names
+parameter_names = prior.naming
 truths = np.array([injection_dict[name] for name in parameter_names if name not in fixed_parameter_names])
 
 n_chains, n_steps, n_dim = np.shape(chains)
 samples = np.reshape(chains, (n_chains * n_steps, n_dim))
 samples = np.asarray(samples) # convert from jax.numpy array to numpy array for corner consumption
 
-fig = corner.corner(samples, labels = parameter_names, truths = truths, hist_kwargs={'density': True}, **default_corner_kwargs)
-fig.savefig("./figures/test_injection_corner.png", bbox_inches = 'tight')
+corner.corner(samples, labels = parameter_names, truths = truths, truth_color="red", hist_kwargs={'density': True}, **default_corner_kwargs)
+plt.savefig(f"./figures/test_injection_{name}_corner.png", bbox_inches = 'tight')
 plt.close()
 
 print("DONE")
