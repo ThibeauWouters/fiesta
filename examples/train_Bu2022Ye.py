@@ -105,6 +105,6 @@ for filt in bulla_trainer.filters:
     plt.plot(times, y_predict, label="Surrogate prediction")
     plt.ylabel(f"mag for {filt}")
     plt.legend()
-    plt.savefig(f"./figures/{filt}_example_prediction.png")
+    plt.savefig(f"./figures/{name}_{filt}_example_prediction.png")
     plt.show()
     break # to only show the first filter
