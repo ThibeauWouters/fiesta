@@ -33,8 +33,9 @@ FILTERS = ["ps1__g", "ps1__r", "ps1__i", "ps1__z", "ps1__y", "2massj", "2massh",
 
 # TODO: need to find a way to locate the files
 lc_dir = "/home/urash/twouters/KN_lightcurves/lightcurves/bulla_2022/"
+name = "Bu2022Ye"
 
-outdir = "../trained_models/Bu2022Ye/"
+outdir = f"../trained_models/{name}/"
 plots_dir = "./figures/" # to make plots
 if not os.path.exists(plots_dir):
     os.makedirs(plots_dir)
@@ -53,18 +54,19 @@ print(example_file)
 
 print("Defining trainer object, will take around 2 minutes for loading and preprocessing")
 
-bulla_trainer = BullaSurrogateTrainer("Bu2022Ye", 
+bulla_trainer = BullaSurrogateTrainer(name,
                                       lc_dir, 
                                       outdir, 
                                       filters = FILTERS,
-                                      plots_dir = plots_dir)
+                                      plots_dir = plots_dir,
+                                      save_raw_data = False)
 full_lc_files = [os.path.join(lc_dir, f) for f in lc_files]
 
 for filename in full_lc_files[:4]:
     print("Example fetching parameters from filename:")
     print("filename")
     print(filename)
-    p = utils.extract_Bu2022Ye_parameters(filename)
+    p = bulla_trainer.extract_parameters_function(filename)
     print("Parameters extracted")
     print(p)
     
@@ -84,15 +86,18 @@ bulla_trainer.save()
 
 print("Producing example lightcurve . . .")
 
-lc_model = BullaLightcurveModel("Bu2022Ye", 
-                                 outdir, 
-                                 filters = FILTERS)
+lc_model = BullaLightcurveModel(name,
+                                outdir, 
+                                filters = FILTERS)
 
 times = bulla_trainer.times
 
 for filt in bulla_trainer.filters:
     X_example = bulla_trainer.X_raw[0]
     y_raw = bulla_trainer.y_raw[filt][0]
+    
+    # Turn into a dict: this is how the model expects the input
+    X_example = {k: v for k, v in zip(bulla_trainer.parameter_names, X_example)}
     
     # Get the prediction lightcurve
     y_predict = lc_model.predict(X_example)[filt]
@@ -101,6 +106,6 @@ for filt in bulla_trainer.filters:
     plt.plot(times, y_predict, label="Surrogate prediction")
     plt.ylabel(f"mag for {filt}")
     plt.legend()
-    plt.savefig(f"./figures/{filt}_example_prediction.png")
+    plt.savefig(f"./figures/{name}_{filt}_example_prediction.png")
     plt.show()
     break # to only show the first filter
