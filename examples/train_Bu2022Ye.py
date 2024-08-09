@@ -58,7 +58,8 @@ bulla_trainer = BullaSurrogateTrainer(name,
                                       lc_dir, 
                                       outdir, 
                                       filters = FILTERS,
-                                      plots_dir = plots_dir)
+                                      plots_dir = plots_dir,
+                                      save_raw_data = False)
 full_lc_files = [os.path.join(lc_dir, f) for f in lc_files]
 
 for filename in full_lc_files[:4]:
