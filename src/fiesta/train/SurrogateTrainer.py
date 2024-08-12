@@ -59,7 +59,8 @@ class BullaSurrogateTrainer(SurrogateTrainer):
                  tmax: Float = None,
                  dt: Float = None,
                  plots_dir: str = None,
-                 save_raw_data: bool = False
+                 save_raw_data: bool = False,
+                 load_raw_data: bool = False
                  ):
         
         """
@@ -125,17 +126,40 @@ class BullaSurrogateTrainer(SurrogateTrainer):
                                        "nsvd_coeff": self.svd_ncoeff,
                                        "times": self.times}
         
-        print("Reading data files and interpolating NaNs . . .")
-        self.X_raw, y = self.read_files()
-        self.y_raw = utils.interpolate_nans(y, _times_grid, self.times)
+        if load_raw_data:
+            file = os.path.join(outdir, "raw_data.npz")
+            print(f"Loading raw data from {file}. . .")
+            data = np.load(file, allow_pickle = True)
+            # X_raw
+            self.X_raw = data["X_raw"]
+            
+            # y_raw
+            keys = list(data.keys())
+            keys.remove("X_raw")
+            self.y_raw = {}
+            for filt in self.filters:
+                if filt in keys:
+                    self.y_raw[filt] = data[filt]
+                else:
+                    print(f"Filter {filt} not found in the saved data - removing it from the filters")
+                    self.filters.remove(filt)
+        else:
+            print("Reading data files and interpolating NaNs . . .")
+            self.X_raw, y = self.read_files()
+            self.y_raw = utils.interpolate_nans(y, _times_grid, self.times)
 
-        if save_raw_data:
+        if save_raw_data and not load_raw_data:
             print("Saving raw data")
             np.savez(os.path.join(outdir, "raw_data.npz"), X_raw=self.X_raw, times=self.times, times_grid=_times_grid, **self.y_raw)
             print("Saving raw data done")
         
         print("Preprocessing data . . .")
         self.preprocess()
+        print("Preprocessing data . . . done")
+        
+        print("Saving preprocessed data")
+        np.savez(os.path.join(outdir, "preprocessed_data.npz"), X=self.X, times=self.times, times_grid=_times_grid, **self.y)
+        print("Saving preprocessed data done")
         
     def __repr__(self) -> str:
         return f"BullaSurrogateTrainer(name={self.name}, lc_dir={self.lc_dir}, outdir={self.outdir}, filters={self.filters})"
@@ -168,6 +192,9 @@ class BullaSurrogateTrainer(SurrogateTrainer):
                     data[filt] = this_data
                 else:
                     data[filt] = np.vstack((data[filt], this_data))
+                    
+            # Extract the pure filename, remove the prefix path:
+            filename = filename.split("/")[-1]
                     
             # Fetch the parameter values of this file
             params = self.extract_parameters_function(filename)
@@ -229,8 +256,6 @@ class BullaSurrogateTrainer(SurrogateTrainer):
             
         self.X = X 
         self.y = y
-        
-        return X, y
     
     ###############
     ### FITTING ###
