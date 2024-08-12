@@ -60,7 +60,7 @@ trainer = AfterglowpyTrainer(jet_name,
                              jet_type = jet_conversion[jet_name],
                              tmin = tmin,
                              tmax = tmax,
-                             n_grid = 3,
+                             n_training_data= 3_000,
                              plots_dir="./figures/",
                              save_data=True,
                              load_data=False
@@ -68,7 +68,7 @@ trainer = AfterglowpyTrainer(jet_name,
 
 
 config = NeuralnetConfig(output_size=len(trainer.times),
-                         nb_epochs=100,)
+                         nb_epochs=10_000,)
 
 trainer.fit(config=config)
 
@@ -89,9 +89,8 @@ times = lc_model.times
 
 for filt in lc_model.filters:
     X_example = trainer.X_raw[0]
-    print("X_example")
-    print(X_example)
     y_raw = trainer.y_raw[filt][0]
+    y_raw = mJys_to_mag_np(y_raw)
     
     # Turn into a dict: this is how the model expects the input
     X_example = {k: v for k, v in zip(lc_model.parameter_names, X_example)}
