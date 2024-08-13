@@ -66,7 +66,7 @@ trigger_time = 57982.5285236896
 name = "Bu2023Ye"
 label = name
 model = BullaLightcurveModel(name,
-                             f"../trained_models/{name}/",
+                             f"../trained_models/tmp_{name}/",
                              filters)
 
 ############
@@ -85,7 +85,7 @@ vej_dyn        = Uniform(xmin=0.12, xmax=0.25, naming=['vej_dyn'])
 Yedyn          = Uniform(xmin=0.15, xmax=0.3, naming=['Yedyn'])
 log10_mej_wind = Uniform(xmin=-2.0, xmax=-0.89, naming=['log10_mej_wind'])
 vej_wind       = Uniform(xmin=0.03, xmax=0.15, naming=['vej_wind'])
-Yewind         = Uniform(xmin=0.20, xmax=0.225, naming=['Yewind'])
+Yewind         = Uniform(xmin=0.20, xmax=0.40, naming=['Yewind'])
 
 # luminosity_distance = Uniform(xmin=30.0, xmax=50.0, naming=['luminosity_distance'])
 
