@@ -53,6 +53,7 @@ outdir = f"./afterglowpy/{name}/"
 ###############
 
 # TODO: perhaps also want to train on the full LC, without the SVD?
+# TODO: train to output flux, not the mag?
 trainer = AfterglowpyTrainer(name,
                              outdir,
                              FILTERS,
@@ -64,6 +65,8 @@ trainer = AfterglowpyTrainer(name,
                              tmax = tmax,
                              plots_dir="./figures/",
                              svd_ncoeff=10,
+                             save_raw_data=True,
+                             save_preprocessed_data=True
                              )
 
 ###############
