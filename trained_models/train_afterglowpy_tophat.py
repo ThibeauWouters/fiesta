@@ -60,7 +60,7 @@ trainer = AfterglowpyTrainer(jet_name,
                              jet_type = jet_conversion[jet_name],
                              tmin = tmin,
                              tmax = tmax,
-                             n_training_data= 3_000,
+                             n_training_data= 10_000,
                              plots_dir="./figures/",
                              save_data=True,
                              load_data=False
@@ -68,7 +68,7 @@ trainer = AfterglowpyTrainer(jet_name,
 
 
 config = NeuralnetConfig(output_size=len(trainer.times),
-                         nb_epochs=10_000,)
+                         nb_epochs=20_000,)
 
 trainer.fit(config=config)
 
@@ -87,10 +87,10 @@ lc_model = AfterglowpyLightcurvemodel("tophat",
 
 times = lc_model.times
 
+
 for filt in lc_model.filters:
     X_example = trainer.X_raw[0]
     y_raw = trainer.y_raw[filt][0]
-    y_raw = mJys_to_mag_np(y_raw)
     
     # Turn into a dict: this is how the model expects the input
     X_example = {k: v for k, v in zip(lc_model.parameter_names, X_example)}
@@ -103,5 +103,5 @@ for filt in lc_model.filters:
     plt.ylabel(f"mag for {filt}")
     plt.legend()
     plt.savefig(f"./figures/afterglowpy_{jet_name}_{filt}_example_prediction.png")
-    plt.show()
-    break # to only show the first filter
+    plt.close()
+    break
