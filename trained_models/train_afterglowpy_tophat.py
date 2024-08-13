@@ -36,10 +36,6 @@ prior_ranges = {
     'log10_epsilon_B': [-10, 0]
 }
 
-# TODO: how is distance handled? What about EM likelihood?
-fixed_parameters = {"luminosity_distance": 40.0}
-
-
 jet_name = "tophat"
 jet_conversion = {"tophat": -1,
                   "gaussian": 0,
@@ -60,7 +56,6 @@ trainer = AfterglowpyTrainer(name,
                              prior_ranges,
                              n_training_data= 2_000,
                              jet_type = jet_conversion[jet_name],
-                             fixed_parameters=fixed_parameters,
                              tmin = tmin,
                              tmax = tmax,
                              plots_dir="./figures/",
