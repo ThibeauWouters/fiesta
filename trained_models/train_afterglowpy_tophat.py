@@ -13,7 +13,6 @@ from fiesta.utils import get_default_filts_lambdas
 from fiesta.constants import days_to_seconds, pc_to_cm, c
 from fiesta.conversions import mJys_to_mag_np
 
-
 #############
 ### SETUP ###
 #############
@@ -36,57 +35,57 @@ prior_ranges = {
     'log10_epsilon_e': [-5, 0],
     'log10_epsilon_B': [-10, 0]
 }
+
+# TODO: how is distance handled? What about EM likelihood?
 fixed_parameters = {"luminosity_distance": 40.0}
+
+
+jet_name = "tophat"
+jet_conversion = {"tophat": -1,
+                  "gaussian": 0,
+                  "powerlaw": 4}
+
+name = "tophat_test"
+outdir = f"./afterglowpy/{name}/"
 
 ###############
 ### TRAINER ###
 ###############
 
-jet_name = "tophat"
-print(f"Making {jet_name} jet surrogate model . . .")
-jet_conversion = {"tophat": -1,
-                  "gaussian": 0,
-                  "powerlaw": 4}
-
-outdir = f"./afterglowpy/{jet_name}/"
-if not os.path.exists(outdir):
-    os.makedirs(outdir)
-
-trainer = AfterglowpyTrainer(jet_name,
+# TODO: perhaps also want to train on the full LC, without the SVD?
+trainer = AfterglowpyTrainer(name,
                              outdir,
-                             prior_ranges,
                              FILTERS,
-                             fixed_parameters=fixed_parameters,
+                             prior_ranges,
+                             n_training_data= 2_000,
                              jet_type = jet_conversion[jet_name],
+                             fixed_parameters=fixed_parameters,
                              tmin = tmin,
                              tmax = tmax,
-                             n_training_data= 10_000,
                              plots_dir="./figures/",
-                             save_data=True,
-                             load_data=False
+                             svd_ncoeff=10,
                              )
 
+###############
+### FITTING ###
+###############
 
-config = NeuralnetConfig(output_size=len(trainer.times),
-                         nb_epochs=20_000,)
+config = NeuralnetConfig(output_size=trainer.svd_ncoeff,
+                         nb_epochs=10_000,
+                         layer_sizes = [128, 256, 128])
 
 trainer.fit(config=config)
-
 trainer.save()
 
-
-########################
-### LIGHTCURVE MODEL ###
-########################
+#############
+### TEST ###
+#############
 
 print("Producing example lightcurve . . .")
 
-lc_model = AfterglowpyLightcurvemodel("tophat",
+lc_model = AfterglowpyLightcurvemodel(name,
                                       outdir, 
                                       filters = FILTERS)
-
-times = lc_model.times
-
 
 for filt in lc_model.filters:
     X_example = trainer.X_raw[0]
@@ -98,10 +97,16 @@ for filt in lc_model.filters:
     # Get the prediction lightcurve
     y_predict = lc_model.predict(X_example)[filt]
     
-    plt.plot(times, y_raw, label="afterglowpy")
-    plt.plot(times, y_predict, label="Surrogate prediction")
+    plt.plot(lc_model.times, y_raw, color = "red", label="afterglowpy")
+    plt.plot(lc_model.times, y_predict, color = "blue", label="Surrogate prediction")
+    upper_bound = y_predict + 1
+    lower_bound = y_predict - 1
+    plt.fill_between(lc_model.times, lower_bound, upper_bound, color='blue', alpha=0.2)
+
     plt.ylabel(f"mag for {filt}")
     plt.legend()
-    plt.savefig(f"./figures/afterglowpy_{jet_name}_{filt}_example_prediction.png")
+    plt.gca().invert_yaxis()
+
+    plt.savefig(f"./figures/afterglowpy_{name}_{filt}_example.png")
     plt.close()
-    break
+    break # only show first filter
