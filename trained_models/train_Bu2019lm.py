@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 from fiesta.train.SurrogateTrainer import BullaSurrogateTrainer
 from fiesta.inference.lightcurve_model import BullaLightcurveModel
 
-import fiesta.utils as utils
 from fiesta.train.neuralnets import NeuralnetConfig
 
 print("Checking whether we found a GPU:")
@@ -32,12 +31,12 @@ plt.rcParams.update(params)
 # All filters that are in the files for this model:
 FILTERS = ["ps1__g", "ps1__r", "ps1__i", "ps1__z", "ps1__y", "2massj", "2massh", "2massks", "sdssu"]
 
-# TODO: need to find a way to locate the files
+# TODO: need to find a way to locate the files/help users
 lc_dir = "/home/urash/twouters/projects/fiesta_dev/fiesta_test/lightcurves/Bu2019lm/lcs/"
 name = "Bu2019lm"
-
 outdir = f"./{name}/"
 plots_dir = "./figures/" # to make plots
+
 if not os.path.exists(outdir):
     os.makedirs(outdir)
 if not os.path.exists(plots_dir):
@@ -56,14 +55,15 @@ print(example_file)
 print("Defining trainer object, will take around 1 minute for loading and preprocessing")
 
 bulla_trainer = BullaSurrogateTrainer(name,
-                                      lc_dir, 
                                       outdir, 
                                       filters = FILTERS,
+                                      data_dir=lc_dir, 
+                                      tmin = 0.1,
+                                      tmax = 14.0,
+                                      dt = 0.1,
                                       plots_dir = plots_dir,
-                                    #   tmin = 0.1,
-                                    #   tmax = 14.0,
-                                    #   dt = 0.1,
-                                      save_raw_data = True)
+                                      save_raw_data = True,
+                                      save_preprocessed_data = True)
 
 print("Filters to train on:")
 print(bulla_trainer.filters)
@@ -78,10 +78,10 @@ for filename in full_lc_files[:4]:
     print(p)
  
 # Define the config if you want to change a default parameter
-config = NeuralnetConfig()
-print(f"Original number of training epochs: {config.nb_epochs}")
-config.nb_epochs = 10_000
-print(f"New number of training epochs: {config.nb_epochs}")
+# Here we change the number of epochs to 10_000
+config = NeuralnetConfig(nb_epochs = 10_000,
+                         output_size=bulla_trainer.svd_ncoeff)
+
 bulla_trainer.fit(config=config, verbose=True)
 bulla_trainer.save()
 
@@ -112,5 +112,7 @@ for filt in bulla_trainer.filters:
     plt.ylabel(f"mag for {filt}")
     plt.legend()
     plt.savefig(f"./figures/{name}_{filt}_example_prediction.png")
+    plt.gca().invert_yaxis()
+    
     plt.show()
     break # to only show the first filter

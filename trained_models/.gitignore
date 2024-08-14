@@ -1,1 +1,3 @@
 figures/
+raw_data.npz
+preprocessed_data.npz
