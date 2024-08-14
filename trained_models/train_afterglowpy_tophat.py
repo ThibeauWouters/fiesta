@@ -1,23 +1,16 @@
-import os 
-import time
-import tqdm
-import itertools
 import numpy as np 
 import matplotlib.pyplot as plt
-import afterglowpy as grb
 
 from fiesta.train.SurrogateTrainer import AfterglowpyTrainer
 from fiesta.inference.lightcurve_model import AfterglowpyLightcurvemodel
 from fiesta.train.neuralnets import NeuralnetConfig
 from fiesta.utils import get_default_filts_lambdas
-from fiesta.constants import days_to_seconds, pc_to_cm, c
-from fiesta.conversions import mJys_to_mag_np
 
 #############
 ### SETUP ###
 #############
 
-FILTERS = ["radio-3GHz"]
+FILTERS = ["radio-3GHz"] # TODO: add the filters [radio-6GHz, X-ray-1keV]
 FILTERS, lambdas = get_default_filts_lambdas(FILTERS)
 nus = c / lambdas
 print(FILTERS)
@@ -41,7 +34,7 @@ jet_conversion = {"tophat": -1,
                   "gaussian": 0,
                   "powerlaw": 4}
 
-name = "tophat_test"
+name = "tophat"
 outdir = f"./afterglowpy/{name}/"
 
 ###############
@@ -70,7 +63,7 @@ trainer = AfterglowpyTrainer(name,
 
 config = NeuralnetConfig(output_size=trainer.svd_ncoeff,
                          nb_epochs=10_000,
-                         layer_sizes = [128, 256, 128])
+                         hidden_layer_sizes = [128, 256, 128])
 
 trainer.fit(config=config)
 trainer.save()
