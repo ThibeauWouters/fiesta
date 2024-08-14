@@ -99,11 +99,11 @@ detection_limit = None
 likelihood = EMLikelihood(model,
                           data,
                           filters,
+                          trigger_time=trigger_time,
                           tmin=0.05,
                           tmax=14.0,
-                          trigger_time=trigger_time,
                           detection_limit = detection_limit,
-                        #   fixed_params={"luminosity_distance": 44.0}
+                        #   fixed_params={"luminosity_distance": 40.0}
 ) 
 
 ##############
@@ -161,7 +161,7 @@ np.savez(name, chains=chains, log_prob=log_prob,
 ### PLOTTING ###
 ################
 
-# Fixed names: do not include them in the plotting, as will break corner
+# Do not include fixed parameters in the plotting, as will break corner
 parameter_names = prior.naming
 
 n_chains, n_steps, n_dim = np.shape(chains)
@@ -178,8 +178,8 @@ number_of_minutes = runtime_seconds // 60
 number_of_seconds = np.round(runtime_seconds % 60, 2)
 print(f"Total runtime: {number_of_minutes} m {number_of_seconds} s")
 
-print("Plotting lightcurves")
-
+print("Plotting lightcurves . . .")
 fiesta.plot_lightcurves()
+print("Plotting lightcurves . . . done")
 
 print("DONE")
