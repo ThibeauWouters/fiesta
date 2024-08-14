@@ -93,7 +93,7 @@ print("Producing example lightcurve . . .")
 
 lc_model = BullaLightcurveModel(name,
                                 outdir, 
-                                filters = FILTERS)
+                                FILTERS)
 
 times = bulla_trainer.times
 
