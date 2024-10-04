@@ -4,30 +4,57 @@ import matplotlib.pyplot as plt
 from fiesta.train.SurrogateTrainer import AfterglowpyTrainer
 from fiesta.inference.lightcurve_model import AfterglowpyLightcurvemodel
 from fiesta.train.neuralnets import NeuralnetConfig
-from fiesta.utils import get_default_filts_lambdas
+from fiesta.utils import Filter
 
 #############
 ### SETUP ###
 #############
 
-FILTERS = ["radio-3GHz"] # TODO: add the filters [radio-6GHz, X-ray-1keV]
-FILTERS, lambdas = get_default_filts_lambdas(FILTERS)
-nus = c / lambdas
-print(FILTERS)
-print(nus)
+FILTERS = ["X-ray-1keV", "radio-6GHz", "radio-3GHz", "bessellv"]
+for filter in FILTERS:
+    filter = Filter(filter)
+    print(filter.name, filter.nu)
 
 tmin = 1
 tmax = 1000
 
-prior_ranges = {
-    'inclination_EM': [0.0, np.pi/2],
-    'log10_E0': [47.0, 57.0],
-    'thetaCore': [0.01, np.pi/10],
-    'log10_n0': [-6, 3.0],
-    'p': [2.01, 3.0],
-    'log10_epsilon_e': [-5, 0],
-    'log10_epsilon_B': [-10, 0]
+"""
+#grid for radio-6GHz and radio-3GHz
+parameter_grid = {
+    'inclination_EM': [0.0, np.pi/24, np.pi/12, np.pi/8, np.pi/6, np.pi*5/24, np.pi/4, np.pi/3, 5*np.pi/12, 1.4, np.pi/2],
+    'log10_E0': [46.0, 46.5, 48, 50, 51, 52., 53, 53.5, 54., 54.5, 55.],
+    'thetaCore': [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.1, 0.2, 0.3, np.pi/10],
+    'log10_n0': [-7.0, -6.5, -6.0, -5.0, -4.0, -3.0, -1.0, 1.0],
+    'p': [2.01, 2.1, 2.2, 2.4, 2.6, 2.8, 2.9, 3.0],
+    'log10_epsilon_e': [-4, -3.5,  -3,  -2, -1, -0.66, -0.33, 0],
+    'log10_epsilon_B': [-8, -6, -4, -2., -1., 0]
 }
+
+#grid for X-ray-1keV and bessellv
+parameter_grid = {
+    'inclination_EM': [0.0, np.pi/24, np.pi/12, np.pi/8, np.pi/6, np.pi/4, np.pi/3, 5*np.pi/12, 1.4, np.pi/2],
+    'log10_E0': [46.0, 46.5, 48, 50, 51, 52., 53, 53.5, 54., 54.5, 55.],
+    'thetaCore': [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.1, 0.2, 0.3, np.pi/10],
+    'log10_n0': [-7.0, -6.5, -6.0, -5.0, -4.0, -3.0, -1.0, 1.0],
+    'p': [2.01, 2.1, 2.2, 2.4, 2.6, 2.8, 2.9, 3.0],
+    'log10_epsilon_e': [-4, -3.5,  -3,  -2, -1, -0.66, -0.33, 0],
+    'log10_epsilon_B': [-8, -6, -4, -2., -1., 0]
+}
+
+
+"""
+
+FILTERS = ["radio-3GHz", "radio-6GHz"]
+parameter_grid = {
+    'inclination_EM': [0.0, np.pi/24, np.pi/12, np.pi/8, np.pi/6, np.pi*5/24, np.pi/4, np.pi/3, 5*np.pi/12, 1.4, np.pi/2],
+    'log10_E0': [46.0, 46.5, 48, 50, 51, 52., 53, 53.5, 54., 54.5, 55.],
+    'thetaCore': [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.1, 0.2, 0.3, np.pi/10],
+    'log10_n0': [-7.0, -6.5, -6.0, -5.0, -4.0, -3.0, -1.0, 1.0],
+    'p': [2.01, 2.1, 2.2, 2.4, 2.6, 2.8, 2.9, 3.0],
+    'log10_epsilon_e': [-4, -3.5,  -3,  -2, -1, -0.66, -0.33, 0],
+    'log10_epsilon_B': [-8, -6, -4, -2., -1., 0]
+}
+
 
 jet_name = "tophat"
 jet_conversion = {"tophat": -1,
@@ -46,15 +73,16 @@ outdir = f"./afterglowpy/{name}/"
 trainer = AfterglowpyTrainer(name,
                              outdir,
                              FILTERS,
-                             prior_ranges,
-                             n_training_data= 2_000,
+                             parameter_grid,
                              jet_type = jet_conversion[jet_name],
                              tmin = tmin,
                              tmax = tmax,
                              plots_dir="./figures/",
-                             svd_ncoeff=10,
+                             svd_ncoeff=40,
                              save_raw_data=True,
-                             save_preprocessed_data=True
+                             save_preprocessed_data=True,
+                             remake_training_data = True,
+                             n_training_data = 7000
                              )
 
 ###############
@@ -62,8 +90,9 @@ trainer = AfterglowpyTrainer(name,
 ###############
 
 config = NeuralnetConfig(output_size=trainer.svd_ncoeff,
-                         nb_epochs=10_000,
-                         hidden_layer_sizes = [128, 256, 128])
+                         nb_epochs=50_000,
+                         hidden_layer_sizes = [64, 128, 64],
+                         learning_rate = 8e-3)
 
 trainer.fit(config=config)
 trainer.save()
@@ -79,8 +108,8 @@ lc_model = AfterglowpyLightcurvemodel(name,
                                       filters = FILTERS)
 
 for filt in lc_model.filters:
-    X_example = trainer.X_raw[0]
-    y_raw = trainer.y_raw[filt][0]
+    X_example = trainer.val_X_raw[0]
+    y_raw = trainer.val_y_raw[filt][0]
     
     # Turn into a dict: this is how the model expects the input
     X_example = {k: v for k, v in zip(lc_model.parameter_names, X_example)}
@@ -100,4 +129,3 @@ for filt in lc_model.filters:
 
     plt.savefig(f"./figures/afterglowpy_{name}_{filt}_example.png")
     plt.close()
-    break # only show first filter
