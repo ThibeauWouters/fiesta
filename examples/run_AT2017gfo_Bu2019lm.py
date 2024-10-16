@@ -79,7 +79,7 @@ data = load_event_data("./data/AT2017gfo.dat")
 ### PRIORS AND LIKELIHOOD ###
 #############################
 
-KNphi               = Uniform(xmin=0.0, xmax=90.0, naming=['KNphi'])
+KNphi               = Uniform(xmin=15.0, xmax=75.0, naming=['KNphi'])
 KNtheta             = Uniform(xmin=0.0, xmax=90.0, naming=['KNtheta'])
 log10_mej_dyn       = Uniform(xmin=-3.0, xmax=-1.0, naming=['log10_mej_dyn'])
 log10_mej_wind      = Uniform(xmin=-3.0, xmax=-0.5, naming=['log10_mej_wind'])
@@ -122,12 +122,12 @@ if not os.path.exists(outdir):
 fiesta = Fiesta(likelihood,
                 prior,
                 n_chains = 1_000,
-                n_loop_training = 10,
-                n_loop_production = 10,
+                n_loop_training = 5,
+                n_loop_production = 3,
                 num_layers = 4,
                 hidden_size = [32, 32],
                 n_epochs = 10,
-                n_local_steps = 10,
+                n_local_steps = 100,
                 n_global_steps = 10,
                 local_sampler_arg=local_sampler_arg,
                 outdir = outdir)
