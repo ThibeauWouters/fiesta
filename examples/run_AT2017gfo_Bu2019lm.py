@@ -122,13 +122,13 @@ if not os.path.exists(outdir):
 fiesta = Fiesta(likelihood,
                 prior,
                 n_chains = 1_000,
-                n_loop_training = 5,
-                n_loop_production = 3,
+                n_loop_training = 10,
+                n_loop_production = 10,
                 num_layers = 4,
                 hidden_size = [32, 32],
-                n_epochs = 20,
-                n_local_steps = 50,
-                n_global_steps = 50,
+                n_epochs = 10,
+                n_local_steps = 10,
+                n_global_steps = 10,
                 local_sampler_arg=local_sampler_arg,
                 outdir = outdir)
 
@@ -168,9 +168,11 @@ n_chains, n_steps, n_dim = np.shape(chains)
 samples = np.reshape(chains, (n_chains * n_steps, n_dim))
 samples = np.asarray(samples) # convert from jax.numpy array to numpy array for corner consumption
 
+print("Plotting corner . . .")
 corner.corner(samples, labels = parameter_names, hist_kwargs={'density': True}, **default_corner_kwargs)
 plt.savefig(os.path.join(outdir, "corner.png"), bbox_inches = 'tight')
 plt.close()
+print("Plotting corner . . . done")
 
 end_time = time.time()
 runtime_seconds = end_time - start_time
