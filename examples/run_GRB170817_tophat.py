@@ -68,29 +68,30 @@ trigger_time = 57982.5285236896
 
 name = "tophat"
 model_dir = f"../trained_models/afterglowpy/{name}/"
-FILTERS = ["radio-3GHz"] # TODO: add more filters here and tackle the full problem
+FILTERS = ["radio-3GHz", "radio-6GHz", "X-ray-1keV", "bessellv"]
 
 model = AfterglowpyLightcurvemodel(name,
                                    model_dir, 
                                    filters = FILTERS)
 
+
 ############
 ### DATA ###
 ############
 
-data = load_event_data("./data/GRB170817A_toy.dat") # only one filter of the GRB170817A data
+data = load_event_data("./data/GRB170817A.dat") # only one filter of the GRB170817A data
 
 #############################
 ### PRIORS AND LIKELIHOOD ###
 #############################
 
 inclination_EM = Uniform(xmin=0.0, xmax=np.pi/2, naming=['inclination_EM'])
-log10_E0 = Uniform(xmin=47.0, xmax=57.0, naming=['log10_E0'])
+log10_E0 = Uniform(xmin=46.0, xmax=55.0, naming=['log10_E0'])
 thetaCore = Uniform(xmin=0.01, xmax=np.pi/10, naming=['thetaCore'])
-log10_n0 = Uniform(xmin=-6.0, xmax=3.0, naming=['log10_n0'])
+log10_n0 = Uniform(xmin=-7.0, xmax=1.0, naming=['log10_n0'])
 p = Uniform(xmin=2.01, xmax=3.0, naming=['p'])
 log10_epsilon_e = Uniform(xmin=-5.0, xmax=0.0, naming=['log10_epsilon_e'])
-log10_epsilon_B = Uniform(xmin=-10.0, xmax=0.0, naming=['log10_epsilon_B'])
+log10_epsilon_B = Uniform(xmin=-8.0, xmax=0.0, naming=['log10_epsilon_B'])
 
 # luminosity_distance = Uniform(xmin=30.0, xmax=50.0, naming=['luminosity_distance'])
 
@@ -110,7 +111,7 @@ detection_limit = None
 likelihood = EMLikelihood(model,
                           data,
                           FILTERS,
-                          tmax = 300.0,
+                          tmax = 500.0,
                           trigger_time=trigger_time,
                           detection_limit = detection_limit,
                           fixed_params={"luminosity_distance": 40.0}
@@ -142,7 +143,7 @@ fiesta = Fiesta(likelihood,
                 local_sampler_arg=local_sampler_arg,
                 outdir = outdir)
 
-fiesta.sample(jax.random.PRNGKey(0))
+fiesta.sample(jax.random.PRNGKey(42))
 
 fiesta.print_summary()
 
