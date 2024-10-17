@@ -85,6 +85,9 @@ config = NeuralnetConfig(nb_epochs = 10_000,
 bulla_trainer.fit(config=config, verbose=True)
 bulla_trainer.save()
 
+bulla_trainer._save_raw_data()
+bulla_trainer._save_preprocessed_data()
+
 ########################
 ### LIGHTCURVE MODEL ###
 ########################
