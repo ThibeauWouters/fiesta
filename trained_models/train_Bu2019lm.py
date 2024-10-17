@@ -97,22 +97,4 @@ lc_model = BullaLightcurveModel(name,
 
 times = bulla_trainer.times
 
-# for filt in bulla_trainer.filters:
-#     # X_example = bulla_trainer.X_raw[0]
-#     # y_raw = bulla_trainer.y_raw[filt][0]
-    
-#     # # Turn into a dict: this is how the model expects the input
-#     # X_example = {k: v for k, v in zip(bulla_trainer.parameter_names, X_example)}
-    
-#     # Get the prediction lightcurve
-#     y_predict = lc_model.predict(X_example)[filt]
-    
-#     # plt.plot(times, y_raw, label="POSSIS")
-#     plt.plot(times, y_predict, label="Surrogate prediction")
-#     plt.ylabel(f"mag for {filt}")
-#     plt.legend()
-#     plt.savefig(f"./figures/{name}_{filt}_example_prediction.png")
-#     plt.gca().invert_yaxis()
-    
-#     plt.show()
-#     break # to only show the first filter
+print("Training done!")
