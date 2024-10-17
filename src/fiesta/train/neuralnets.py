@@ -85,6 +85,95 @@ class MLP(BaseNeuralnet):
 
         return x
     
+    
+############
+### CVAE ###
+############
+
+class Encoder(nn.Module):
+    image_size: Int = 1629
+    c: Int = 4
+    hidden_dim: Int = 500
+    z_dim: Int = 20
+
+    @nn.compact
+    def __call__(self, x: Array):
+        # First, process the input for `mu`
+        x_mu = nn.Dense(self.hidden_dim)(x)
+        x_mu = nn.tanh(x_mu)
+        x_mu = nn.Dense(self.hidden_dim)(x_mu)
+        x_mu = nn.tanh(x_mu)
+        mu = nn.Dense(self.z_dim)(x_mu)
+
+        # Then, process the input for `logvar`
+        x_logvar = nn.Dense(self.hidden_dim)(x)
+        x_logvar = nn.tanh(x_logvar)
+        x_logvar = nn.Dense(self.hidden_dim)(x_logvar)
+        x_logvar = nn.tanh(x_logvar)
+        logvar = nn.Dense(self.z_dim)(x_logvar)
+
+        return mu, logvar
+    
+    def forward(self, x: Array):
+        """
+        Compute single pass through the encoder
+
+        :param x: Concatenated images and corresponding conditioning variables
+        :return: Mean and log variance of the encoder's distribution
+        """
+        return self(x)
+    
+class Decoder(nn.Module):
+    image_size: int = 1629
+    c: int = 4
+    hidden_dim: int = 500
+    z_dim: int = 20
+
+    @nn.compact
+    def __call__(self, z):
+        # First dense layer followed by Tanh activation
+        x = nn.Dense(self.hidden_dim)(z)
+        x = nn.tanh(x)
+        
+        # Second dense layer followed by Tanh activation
+        x = nn.Dense(self.hidden_dim)(x)
+        x = nn.tanh(x)
+        
+    
+class CVAE(nn.Module):
+    image_size: int = 1629
+    hidden_dim: int = 500
+    z_dim: int = 20
+    c: int = 4
+
+    def setup(self):
+        self.encoder = Encoder(self.image_size, self.hidden_dim, self.z_dim, self.c)
+        self.decoder = Decoder(self.image_size, self.hidden_dim, self.z_dim, self.c)
+
+    def reparametrize(self, mean, logvar, rng):
+        std = jnp.exp(0.5 * logvar)
+        eps = jax.random.normal(rng, std.shape)
+        return mean + eps * std
+
+    def __call__(self, x, y, rng):
+        # Concatenate conditioning variables `x` with the images/spectra `y`
+        y_concat = jnp.concatenate([y, x], axis=-1)
+        
+        # Pass through the encoder
+        mean, logvar = self.encoder(y_concat)
+        
+        # Reparametrize to sample from the latent space
+        sample = self.reparametrize(mean, logvar, rng)
+        
+        # Concatenate sampled latent variables `sample` with `x` again
+        z = jnp.concatenate([sample, x], axis=-1)
+        
+        # Pass through the decoder to get the output
+        mean_dec = self.decoder(z)
+        
+        return mean_dec, mean, logvar
+        
+    
 ################
 ### TRAINING ###
 ################

@@ -8,6 +8,7 @@ import jax.numpy as jnp
 from jaxtyping import Array, Float, Int
 from fiesta.utils import MinMaxScalerJax
 from fiesta import utils
+from fiesta.utils import Filter
 from fiesta import conversions
 from fiesta.constants import days_to_seconds, c
 from fiesta import models_utilities
@@ -25,7 +26,7 @@ class SurrogateTrainer:
     
     name: str
     outdir: str
-    filters: list[str]
+    filters: list[Filter]
     parameter_names: list[str]
     
     validation_fraction: Float
@@ -62,6 +63,7 @@ class SurrogateTrainer:
         self.validation_fraction = validation_fraction
         self.preprocessing_metadata = {}
         
+        # TODO: this is deprecated?
         self.X_raw = None
         self.y_raw = None
         
@@ -441,8 +443,11 @@ class BullaSurrogateTrainer(SVDSurrogateTrainer):
     
     def load_raw_data(self):
         print("Reading data files and interpolating NaNs . . .")
-        X_raw, y = self._read_files()
-        y_raw = utils.interpolate_nans(y, self._times_grid, self.times)
+        self.X_raw, y = self._read_files()
+        self.y_raw = utils.interpolate_nans(y, self._times_grid, self.times)
+        
+        X_raw = self.X_raw
+        y_raw = self.y_raw
         if self.save_raw_data:
             np.savez(os.path.join(self.outdir, "raw_data.npz"), X_raw=X_raw, times=self.times, times_grid=self._times_grid, **y_raw)
         
@@ -678,3 +683,16 @@ class AfterglowpyTrainer(SVDSurrogateTrainer):
         # Afterglowpy returns flux in mJys
         mJys = grb.fluxDensity(self._times_afterglowpy, params_dict["nu"], **Z)
         return mJys
+    
+class cVAESurrogate(SurrogateTrainer):
+    
+    def __init__(self, 
+                 name: str,
+                 outdir: str,
+                 validation_fraction: Float = 0.2,
+                 save_raw_data: bool = False,
+                 save_preprocessed_data: bool = False) -> None:
+        
+        super().__init__(name, outdir, validation_fraction, save_raw_data, save_preprocessed_data)
+        
+        
